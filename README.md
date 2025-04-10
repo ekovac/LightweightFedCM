@@ -49,12 +49,12 @@ of the [Federated Identity Community Group](https://fedidcg.github.io/).
 
 ## Introduction
 
-The goal of this proposal is to create more flexibility for Identity Providers (IdPs) who wish to integrate with Federated Credential Management and the gain the benefits of more contextually-relevant user mediated access to cross-site top-level unpartitioned cookies.
+The goal of this proposal is to create more flexibility for Identity Providers (IdPs) who wish to integrate with Federated Credential Management and gain the benefits of more contextually-relevant user-mediated access to cross-site top-level unpartitioned cookies.
 
 This is accomplished with three proposed changes to the [FedCM specification](https://w3c-fedid.github.io/FedCM/):
 
-* Allow IdPs to store display information about users accounts up-front via the [Login Status API](https://w3c-fedid.github.io/login-status/#introduction), which we will refer to as "FedCM Accounts Push."
-* Allows IdPs to skip implementation of the `client_metadata_endpoint`, `id_assertion_endpoint`, `accounts_endpoint`, and the `login_url` by defining user agent semantics when any of these are not present; this will be referred to as "FedCM Optional Endpoints."
+* Allow IdPs to store display information about user accounts up-front via the [Login Status API](https://w3c-fedid.github.io/login-status/#introduction), which we will refer to as "FedCM Accounts Push."
+* Allows IdPs to skip implementation of the `client_metadata_endpoint`, `id_assertion_endpoint`, `accounts_endpoint`, and `login_url` by defining user agent semantics when any of these are not present; these will be referred to as "FedCM Optional Endpoints."
 * Allow IdPs to store endpoint configuration information up-front via the Login Status API; this will be referred to as "FedCM Config Push."
 
 It is possible to look at this proposal as an “axiomatic base” of FedCM; simplifying FedCM down to its barest essentials that will allow it to still function in a way that provides value to both users and identity providers. One benefit of this approach is it allows for incremental adoption of full FedCM by existing identity providers. It defines useful user-agent behaviors for FedCM when some of the specified endpoints are not defined.
@@ -71,7 +71,7 @@ These changes are intended to:
 * Improve performance and privacy properties of FedCM by optionally moving credentialed calls to IdPs to a later point in the sign-in user journey.
 
 These changes explicitly must *not*:
-* Make invisible or silent timing attacks possible for a colluding IdP and RP.
+* Enable invisible or silent timing attacks for a colluding IdP and RP.
 * Create incentives for companies engaged in tracking to present themselves as a fake IdP.
 
 These changes are *not* intended to:
@@ -102,7 +102,7 @@ navigator.login.setStatus("logged-in", {
 // navigator.login.setStatus("logged-out"); undoes the prior operation
 ```
 
-Then, when an RP calls `navigator.credentials.get()` with the appropriate configuration for `example.com` to begin the FedCM signin or signup flows, the user's browser will not have to make a credentialed request to the the `accounts_endpoint` defined in `fedcm.json`; instead, the browser-controlled account selector will be displayed immediately, using the accounts list that was stored by the IdP earlier. If the account information has expired, the browser will either invoke the `accounts_endpoint`, or, if the `accounts_endpoint` isn't defined in the IdP's configuration, navigate to the `login_url` (when `mode: active`) or terminate the flow and reject the returned promise (when `mode: passive`)
+Then, when an RP calls `navigator.credentials.get()` with the appropriate configuration for `example.com` to begin the FedCM signin or signup flows, the user's browser will not have to make a credentialed request to the `accounts_endpoint` defined in `fedcm.json`; instead, the browser-controlled account selector will be displayed immediately, using the accounts list that was previously stored by the IdP. If the account information has expired, the browser will either invoke the `accounts_endpoint`, or, if the `accounts_endpoint` isn't defined in the IdP's configuration, navigate to the `login_url` (when `mode: active`) or terminate the flow and reject the returned promise (when `mode: passive`).
 
 ```
 const credential = await navigator.credentials.get({
@@ -120,7 +120,7 @@ If the IdP is making use of FedCM Accounts Push, then it should be permitted to 
 
 ### Client Metadata Endpoint
 
-Not all IdPs may want to use the browser-mediated UI for displaying links to the RP's Terms of Service and Privacy Policy; for instance, in the IdP Registration model, the IdP and RP may not have a pre-existing relationship such that the IdP could respond meaningfully to a request to the `client_metadata_endpoint`.
+Some IdPs may not require all aspects of the FedCM flow to provide a useful experience to users and RPs. It might be useful for an IdP to not define some endpoints in the [IdentityProviderAPIConfig](https://w3c-fedid.github.io/FedCM/#dictdef-identityproviderapiconfig), rather than implementing stubs. If they define none of these endpoints, no IdP configuration should be required at all.
 
 The `client_metadata_endpoint` is already [effectively optional in Chrome](https://github.com/w3c-fedid/FedCM/issues/701#issuecomment-2666184937), and the intention is to update the specification to match the implemented behavior.
 
@@ -205,7 +205,7 @@ The primary caveat is that if a `login_url` is supplied in `setStatus`, it could
 
 ## Interaction with other FedCM Features
 
-The addressed FedCM features here should not be considered exhaustive; instead, this outlines features where special consideration is
+The FedCM features addressed here should not be considered exhaustive; instead, this outlines features where special consideration is
 required. Unless otherwise stated, any FedCM functionality should be available to IdPs taking advantage of Accounts Push, Optional Endpoints, or Config Push. 
 
 Features that should work with no modification include:
